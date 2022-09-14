@@ -1,0 +1,7 @@
+/default.etcd/
+*.log
+.air.toml
+*cache
+.idea/
+/data/
+/logs/

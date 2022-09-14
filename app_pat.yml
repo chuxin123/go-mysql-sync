@@ -1,0 +1,137 @@
+# mysql配置
+addr: rm-uf6ta1p3uyenyu40k.mysql.rds.aliyuncs.com:3306
+user: go-mysql-transfer
+pass: oX<u.2TDt|Tv
+charset : utf8
+slave_id: 1001 #slave ID
+flavor: mysql #mysql or mariadb,默认mysql
+
+#系统相关配置
+data_dir: logs/
+logger:
+  level: info #日志级别；支持：debug|info|warn|error，默认info
+# logger:
+#   level: info #日志级别；支持：debug|info|warn|error，默认info
+
+# maxprocs: 16 #并发协（线）程数量，默认为: CPU核数*2；一般情况下不需要设置此项
+# bulk_size: 1000 #每批处理数量，不写默认100，可以根据带宽、机器性能等调整;如果是全量数据初始化时redis建议设为1000，其他接收端酌情调大
+
+#prometheus相关配置
+#enable_exporter: true #是否启用prometheus exporter，默认false
+#exporter_addr: 9595 #prometheus exporter端口，默认9595
+
+#web admin相关配置
+enable_web_admin: false #是否启用web admin，默认false
+web_admin_port: 8060 #web监控端口,默认8060
+
+# cluster: # 集群相关配置
+#   name: myTransfer #集群名称，具有相同name的节点放入同一个集群
+#   bind_ip: 127.0.0.1 # 绑定的IP,如果机器有多张网卡(包含虚拟网卡)会有多个IP，使用这个属性绑定一个
+#   etcd_addrs: k8s://pat-center-go/pat-center-go-rbac-svc:8080 #etcd连接地址，多个用逗号分隔
+
+#目标类型
+# target: kafka # 支持redis、mongodb、elasticsearch、rocketmq、kafka、rabbitmq
+target: redis
+redis_addrs: r-uf60f254fc418804.redis.rds.aliyuncs.com:6379
+redis_pass: 91Toptaste
+redis_key_ttl: 3600
+
+#kafka连接配置
+# kafka_addrs:  cccchumac.local:9092 #kafka连接地址，多个用逗号分隔
+
+#规则配置
+rule:
+  -
+    schema: center-order #数据库名称
+    table: ord_coupon_product_order #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_filter_column: product_order_belong_project_id
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_ord_coupon_product_order_
+    redis_key_value: datacenter_sync_ord_coupon_product_order_queue
+    redis_sorted_set_score_column: gmt_modify
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
+    # redis_key_column: id
+  
+  -
+    schema: backend #数据库名称
+    table: company_merchant_contract #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    #redis_filter_column: product_order_belong_project_id
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_company_merchant_contract_
+    redis_key_value: datacenter_sync_company_merchant_contract_queue
+    redis_sorted_set_score_column: update_time
+    redis_sorted_set_score_column_convert: false # sorted_set 将score字段转为int
+    order_by_column: id
+
+  -
+    schema: backend #数据库名称
+    table: ccp_coupon_code #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_ccp_coupon_code_
+    redis_key_value: datacenter_sync_ccp_coupon_code_queue
+    redis_sorted_set_score_column: updated_at
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
+  
+  -
+    schema: center-order #数据库名称
+    table: ord_hotel_order #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_filter_column: project_id
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_ord_hotel_order_
+    redis_key_value: datacenter_sync_ord_hotel_order_queue
+    redis_sorted_set_score_column: gmt_modify
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
+
+  -
+    schema: center-order #数据库名称
+    table: ord_sub_order #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_ord_sub_order_
+    redis_key_value: datacenter_sync_ord_sub_order_queue
+    redis_sorted_set_score_column: gmt_modify
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
+  
+  -
+    schema: ssp_backend #数据库名称
+    table: ssp_orders #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_ssp_orders_
+    redis_key_value: datacenter_sync_ssp_orders_queue
+    redis_sorted_set_score_column: gmt_modify
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
+
+  -
+    schema: backend #数据库名称
+    table: spdbccc_point_mall_order #表名称
+    column_underscore_to_camel: false #列名称下划线转驼峰,默认为false
+    value_encoder: json  #值编码，支持json、kv-commas、v-commas；默认为json
+    reserve_raw_data: true #保留update之前的数据，针对rocketmq、kafka、rabbitmq有用;默认为false
+    redis_structure: sortedset 
+    redis_key_prefix: datacenter_sync_spdbccc_point_mall_order_
+    redis_key_value: datacenter_sync_spdbccc_point_mall_order_queue
+    redis_sorted_set_score_column: update_time
+    redis_sorted_set_score_column_convert: true # sorted_set 将score字段转为int
+    order_by_column: id
